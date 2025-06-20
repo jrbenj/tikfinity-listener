@@ -69,7 +69,7 @@ def play_video_vlc(video_source, monitor_id):
         print(f"Error initiating video playback: {e}")
         return False
 
-@app.route('/play_video', methods=['GET', 'POST'])
+@app.route('/play_video', methods=['POST'])
 def handle_play_video():
     try:
         # Get video_key from URL query parameter

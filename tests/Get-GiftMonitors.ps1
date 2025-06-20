@@ -10,4 +10,4 @@ function Get-GiftMonitors {
 }
 
 # Usage:
-# Get-GiftMonitors
+Get-GiftMonitors

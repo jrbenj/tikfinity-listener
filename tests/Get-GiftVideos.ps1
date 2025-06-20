@@ -10,4 +10,4 @@ function Get-GiftVideo {
 }
 
 # Usage:
-# Get-GiftVideo
+Get-GiftVideo

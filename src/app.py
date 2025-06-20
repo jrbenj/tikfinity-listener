@@ -5,6 +5,7 @@ import os
 import json
 import threading
 import time # For potential future use, e.g., brief pause after playing
+import re
 
 app = Flask(__name__)
 
@@ -32,6 +33,16 @@ def load_config(config_path):
 VIDEO_LIBRARY, MONITOR_DEVICE_NAMES = load_config(CONFIG_PATH)
 # --- END CONFIGURATION SECTION ---
 
+# Allowed video file extensions
+ALLOWED_VIDEO_EXTENSIONS = [".mp4", ".avi", ".mkv", ".mov"]
+
+def is_safe_video_url(url):
+    # Only allow URLs with allowed extensions and safe characters
+    if any(url.lower().endswith(ext) for ext in ALLOWED_VIDEO_EXTENSIONS):
+        if url.startswith("http://") or url.startswith("https://") or url.startswith("file://"):
+            if not any(c in url for c in [';', '&', '|']):
+                return True
+    return False
 
 def play_video_vlc(video_source, monitor_id):
     if not os.path.exists(VLC_EXE_PATH):
@@ -82,23 +93,13 @@ def handle_play_video():
         final_video_source = None
 
         if direct_video_url:
-            # Validate the direct video URL
-            if not (direct_video_url.startswith("http://") or direct_video_url.startswith("https://") or direct_video_url.startswith("file://")):
-                return jsonify({"status": "error", "message": "Invalid video URL scheme. Only http, https, and file schemes are allowed."}), 400
-            if not any(direct_video_url.lower().endswith(ext) for ext in [".mp4", ".avi", ".mkv", ".mov"]):
-                return jsonify({"status": "error", "message": "Invalid video file format. Supported formats are: .mp4, .avi, .mkv, .mov."}), 400
-            if ";" in direct_video_url or "&" in direct_video_url or "|" in direct_video_url:
-                return jsonify({"status": "error", "message": "Invalid characters in video URL."}), 400
-            
-            # Normalize and validate the path
-            base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "videos"))
-            normalized_path = os.path.normpath(os.path.abspath(direct_video_url.replace("file://", "")))
-            if not normalized_path.startswith(base_path):
-                return jsonify({"status": "error", "message": "Access to the specified path is not allowed."}), 400
-            
-            final_video_source = "file://" + normalized_path
-            print(f"Using direct video URL from webhook: {direct_video_url}")
+            # Only allow video URLs with allowed extensions and safe characters
+            if not is_safe_video_url(direct_video_url):
+                return jsonify({"status": "error", "message": "Video URL is not allowed. Only http, https, and file URLs with supported formats are accepted."}), 400
+            final_video_source = direct_video_url
+            print(f"Using direct video URL: {final_video_source}")
         elif requested_video_key:
+            # Only allow hard-coded video keys
             if requested_video_key in VIDEO_LIBRARY:
                 final_video_source = VIDEO_LIBRARY[requested_video_key]
                 print(f"Mapping '{requested_video_key}' to video: {final_video_source}")
@@ -107,6 +108,10 @@ def handle_play_video():
 
         if not final_video_source:
             return jsonify({"status": "error", "message": "No video source defined or default video not found"}), 400
+
+        # Only allow hard-coded monitor IDs
+        if target_monitor not in MONITOR_DEVICE_NAMES:
+            return jsonify({"status": "error", "message": f"Invalid monitor ID: {target_monitor}"}), 400
 
         # Play video on the specified monitor (default is 1)
         success = play_video_vlc(final_video_source, target_monitor)

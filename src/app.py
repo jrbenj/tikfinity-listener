@@ -82,6 +82,11 @@ def handle_play_video():
         final_video_source = None
 
         if direct_video_url:
+            # Validate the direct video URL
+            if not (direct_video_url.startswith("http://") or direct_video_url.startswith("https://") or direct_video_url.startswith("file://")):
+                return jsonify({"status": "error", "message": "Invalid video URL scheme. Only http, https, and file schemes are allowed."}), 400
+            if not any(direct_video_url.endswith(ext) for ext in [".mp4", ".avi", ".mkv", ".mov"]):
+                return jsonify({"status": "error", "message": "Invalid video file format. Supported formats are: .mp4, .avi, .mkv, .mov."}), 400
             final_video_source = direct_video_url
             print(f"Using direct video URL from webhook: {direct_video_url}")
         elif requested_video_key:

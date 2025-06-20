@@ -40,8 +40,8 @@ def play_video_vlc(video_source, monitor_id):
     if monitor_id not in MONITOR_DEVICE_NAMES:
         print(f"Error: Invalid monitor ID '{monitor_id}'. Valid IDs are: {', '.join(MONITOR_DEVICE_NAMES.keys())}")
         return False
-    if not os.path.exists(video_source):
-        print(f"Error: Video source '{video_source}' does not exist.")
+    if not (video_source.startswith("http://") or video_source.startswith("https://") or video_source.startswith("file://") or os.path.exists(video_source)):
+        print(f"Error: Invalid or non-existent video source '{video_source}'.")
         return False
     # Prepare the command to run VLC
     command = [
@@ -85,16 +85,18 @@ def handle_play_video():
             # Validate the direct video URL
             if not (direct_video_url.startswith("http://") or direct_video_url.startswith("https://") or direct_video_url.startswith("file://")):
                 return jsonify({"status": "error", "message": "Invalid video URL scheme. Only http, https, and file schemes are allowed."}), 400
-            if not any(direct_video_url.endswith(ext) for ext in [".mp4", ".avi", ".mkv", ".mov"]):
+            if not any(direct_video_url.lower().endswith(ext) for ext in [".mp4", ".avi", ".mkv", ".mov"]):
                 return jsonify({"status": "error", "message": "Invalid video file format. Supported formats are: .mp4, .avi, .mkv, .mov."}), 400
+            if ";" in direct_video_url or "&" in direct_video_url or "|" in direct_video_url:
+                return jsonify({"status": "error", "message": "Invalid characters in video URL."}), 400
             final_video_source = direct_video_url
             print(f"Using direct video URL from webhook: {direct_video_url}")
         elif requested_video_key:
-            final_video_source = VIDEO_LIBRARY.get(requested_video_key)
-            if final_video_source:
+            if requested_video_key in VIDEO_LIBRARY:
+                final_video_source = VIDEO_LIBRARY[requested_video_key]
                 print(f"Mapping '{requested_video_key}' to video: {final_video_source}")
             else:
-                print(f"Warning: No video found for key '{requested_video_key}'. Using default.")
+                return jsonify({"status": "error", "message": f"Invalid video key: {requested_video_key}"}), 400
 
         if not final_video_source:
             return jsonify({"status": "error", "message": "No video source defined or default video not found"}), 400

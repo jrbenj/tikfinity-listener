@@ -89,7 +89,14 @@ def handle_play_video():
                 return jsonify({"status": "error", "message": "Invalid video file format. Supported formats are: .mp4, .avi, .mkv, .mov."}), 400
             if ";" in direct_video_url or "&" in direct_video_url or "|" in direct_video_url:
                 return jsonify({"status": "error", "message": "Invalid characters in video URL."}), 400
-            final_video_source = direct_video_url
+            
+            # Normalize and validate the path
+            base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "videos"))
+            normalized_path = os.path.normpath(os.path.abspath(direct_video_url.replace("file://", "")))
+            if not normalized_path.startswith(base_path):
+                return jsonify({"status": "error", "message": "Access to the specified path is not allowed."}), 400
+            
+            final_video_source = "file://" + normalized_path
             print(f"Using direct video URL from webhook: {direct_video_url}")
         elif requested_video_key:
             if requested_video_key in VIDEO_LIBRARY:

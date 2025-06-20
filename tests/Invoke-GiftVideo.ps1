@@ -14,4 +14,4 @@ function Invoke-GiftVideo {
 }
 
 # Example usage:
-# Invoke-GiftVideo -VideoKey "test_video" -TargetMonitor "1"
+Invoke-GiftVideo -VideoKey "test_video" -TargetMonitor "1"

@@ -1,0 +1,15 @@
+{
+    "VIDEO_LIBRARY": {
+        "lion_gift": "C:\\Videos\\tikfinity_videos\\lion_gift.mp4",
+        "follow_alert": "https://yourvideoserver.com/follow_alert.mp4",
+        "rose_gift": "C:\\Videos\\tikfinity_videos\\rose_reveal.mp4",
+        "default_alert": "C:\\Videos\\tikfinity_videos\\default_alert.mp4",
+        "test_video": "C:\\Videos\\tikfinity_videos\\test_video.mp4"
+    },
+    "MONITOR_DEVICE_NAMES": {
+        "1": "\\\\.\\DISPLAY1",
+        "2": "\\\\.\\DISPLAY2",
+        "3": "\\\\.\\DISPLAY3",
+        "4": "\\\\.\\DISPLAY4"
+    }
+}
